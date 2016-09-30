@@ -51,13 +51,11 @@ func ThreadSafeCalcWords(s intstack.IntStack, word string, ch chan<- string,
 			s.Pop()
 			wg.Add(1)
 			go ThreadSafeCalcWords(s, word, ch, wg)
-			//CalcWords(s, word)
 		} else {
 			wg.Done()
 			for _, letter := range letterMap[s.Pop()] {
 				wg.Add(1)
 				go ThreadSafeCalcWords(s, word+letter, ch, wg)
-				CalcWords(s, word+letter)
 			}
 		}
 	}
