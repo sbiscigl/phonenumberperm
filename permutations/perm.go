@@ -2,6 +2,7 @@ package permutations
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/sbiscigl/phonenumberperm/intstack"
 )
@@ -33,4 +34,32 @@ func CalcWords(s intstack.IntStack, word string) {
 			}
 		}
 	}
+}
+
+/*ThreadSafeCalcWords uses recursion to find posisble words*/
+/*Uses channels for multi threading*/
+func ThreadSafeCalcWords(s intstack.IntStack, word string, ch chan<- string,
+	wg *sync.WaitGroup) {
+	if s.IsEmpty() {
+		ch <- fmt.Sprint(word)
+		wg.Done()
+	} else {
+		/*Check to see if the values are 1 or zero as they*/
+		/*have no letters associated with them*/
+		if s.Peek() == 1 || s.Peek() == 0 {
+			wg.Done()
+			s.Pop()
+			wg.Add(1)
+			go ThreadSafeCalcWords(s, word, ch, wg)
+			//CalcWords(s, word)
+		} else {
+			wg.Done()
+			for _, letter := range letterMap[s.Pop()] {
+				wg.Add(1)
+				go ThreadSafeCalcWords(s, word+letter, ch, wg)
+				CalcWords(s, word+letter)
+			}
+		}
+	}
+
 }
